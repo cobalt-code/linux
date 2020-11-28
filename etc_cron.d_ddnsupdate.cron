@@ -1,0 +1,4 @@
+#
+#
+#
+15 * * * * root LANG=C LC_ALL=C bash -x /usr/local/sbin/ddnsupdate.sh kinit >> /var/log/ddnsupdate-kinit.log 2>&1
