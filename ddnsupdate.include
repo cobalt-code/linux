@@ -1,0 +1,45 @@
+#
+# (c)2020 HAns-Helmar Althaus <althaus(at)m57.de>
+#
+# to be included from /etc/dhcp/dhcpd.conf by:
+#
+# include "/etc/dhcp/ddnsupdate.include";  
+#
+
+if static {
+  if known { set ClientOpt="--known-static";
+  } else { set ClientOpt="--unknown-static";
+  }
+} else {
+  if known { set ClientOpt="--known-dynamic";
+  } else { set ClientOpt="--unknown-dynamic";
+  }
+}
+
+on commit {
+  if not static {
+    set ClientIP = binary-to-ascii( 10, 8, ".", leased-address );
+    set ClientID = binary-to-ascii( 16, 8, ":", substring( hardware, 1, 6 ) );
+    set noname = concat( "dhcp-", binary-to-ascii( 10, 8, "-", leased-address ) );
+    set ClientName = pick-first-value( option host-name, host-decl-name, config-option-host-name, client-name, noname );
+    log( info, concat( "Commit: IP: ", ClientIP, " DHCID: ", ClientID, " Name: ", ClientName ) );
+    execute( "/usr/local/sbin/ddnsupdate.sh", "add", "-i", ClientIP, "-m", ClientID, "-h", ClientName, ClientOpt );
+  }
+}
+
+on release {
+  if not static {
+    set ClientIP = binary-to-ascii( 10, 8, ".", leased-address );
+    set ClientID = binary-to-ascii( 16, 8, ":", substring( hardware, 1, 6 ) );
+    log( info, concat( "Release: IP: ", ClientIP, " DHCID: ", ClientID ) );
+    execute( "/usr/local/sbin/ddnsupdate.sh", "del", "-i", ClientIP, "-m", ClientID, ClientOpt );
+  }
+}
+
+on expiry {
+  if not static {
+    set ClientIP = binary-to-ascii( 10, 8, ".", leased-address );
+    log( info, concat( "Expiry: IP: ", ClientIP ) );
+    execute( "/usr/local/sbin/ddnsupdate.sh", "del", "-i", ClientIP, ClientOpt );
+  }
+}
