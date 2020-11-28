@@ -14,6 +14,9 @@ cronjob to provide a valid credential-cache for the
 embedded nsupdate program in the ddnsupdate.sh script.
 
 Files:
+
   ddnsupdate.sh - intended to be placed in /usr/local/sbin
+  
   ddnsupdate.cron - intended to be placed in /etc/cron.d
+  
   ddnsupdate.include - intended to be placed in /etc/dhcp
